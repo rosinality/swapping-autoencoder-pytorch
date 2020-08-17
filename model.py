@@ -93,7 +93,7 @@ class ConvLayer(nn.Sequential):
             )
 
             factor = 2
-            p = (len(blur_kernel) - factor) + (kernel_size - 1)
+            p = (len(blur_kernel) - factor) - (kernel_size - 1)
             pad0 = (p + 1) // 2 + factor - 1
             pad1 = p // 2 + 1
 
