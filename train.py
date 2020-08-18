@@ -179,10 +179,12 @@ def train(
         real_pred = discriminator(real_img)
         d_loss = d_logistic_loss(real_pred, fake_pred)
 
-        fake_patch = patchify_image(fake_img2, 1)
-        real_patch = patchify_image(real_img2, 1)
-        ref_patch = patchify_image(real_img2, args.n_crop)
-        fake_patch_pred, ref_input = cooccur(fake_patch, ref_patch)
+        fake_patch = patchify_image(fake_img2, args.n_crop)
+        real_patch = patchify_image(real_img2, args.n_crop)
+        ref_patch = patchify_image(real_img2, args.ref_crop)
+        fake_patch_pred, ref_input = cooccur(
+            fake_patch, ref_patch, ref_batch=args.ref_crop
+        )
         real_patch_pred, _ = cooccur(real_patch, ref_input=ref_input)
         cooccur_loss = d_logistic_loss(real_patch_pred, fake_patch_pred)
 
@@ -205,7 +207,7 @@ def train(
             r1_loss = d_r1_loss(real_pred, real_img)
 
             real_patch.requires_grad = True
-            real_patch_pred, _ = cooccur(real_patch, ref_patch)
+            real_patch_pred, _ = cooccur(real_patch, ref_patch, ref_batch=args.ref_crop)
             cooccur_r1_loss = d_r1_loss(real_patch_pred, real_patch)
 
             d_optim.zero_grad()
@@ -236,10 +238,9 @@ def train(
         fake_pred = discriminator(torch.cat((fake_img1, fake_img2), 0))
         g_loss = g_nonsaturating_loss(fake_pred)
 
-        fake_patch = patchify_image(fake_img2, 1)
-        real_patch = patchify_image(real_img2, 1)
-        ref_patch = patchify_image(real_img2, args.n_crop)
-        fake_patch_pred, _ = cooccur(fake_patch, ref_patch)
+        fake_patch = patchify_image(fake_img2, args.n_crop)
+        ref_patch = patchify_image(real_img2, args.ref_crop)
+        fake_patch_pred, _ = cooccur(fake_patch, ref_patch, ref_batch=args.ref_crop)
         g_cooccur_loss = g_nonsaturating_loss(fake_patch_pred)
 
         loss_dict["recon"] = recon_loss
@@ -333,6 +334,8 @@ def train(
 if __name__ == "__main__":
     device = "cuda"
 
+    torch.backends.cudnn.benchmark = True
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("path", type=str, nargs="+")
@@ -341,6 +344,7 @@ if __name__ == "__main__":
     parser.add_argument("--size", type=int, default=256)
     parser.add_argument("--r1", type=float, default=10)
     parser.add_argument("--cooccur_r1", type=float, default=1)
+    parser.add_argument("--ref_crop", type=int, default=4)
     parser.add_argument("--n_crop", type=int, default=8)
     parser.add_argument("--d_reg_every", type=int, default=16)
     parser.add_argument("--ckpt", type=str, default=None)

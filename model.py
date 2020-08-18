@@ -4,13 +4,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from stylegan2.model import (
-    StyledConv,
-    Blur,
-    EqualLinear,
-    EqualConv2d,
-    ScaledLeakyReLU,
-)
+from stylegan2.model import StyledConv, Blur, EqualLinear, EqualConv2d, ScaledLeakyReLU
 from stylegan2.op import FusedLeakyReLU
 
 
@@ -390,18 +384,19 @@ class CooccurDiscriminator(nn.Module):
             EqualLinear(channel * 16, 1),
         )
 
-    def forward(self, input, reference=None, ref_input=None):
+    def forward(self, input, reference=None, ref_batch=None, ref_input=None):
         # print(input.shape)
         out_input = self.encoder(input)
 
         if ref_input is None:
             ref_input = self.encoder(reference)
-            in_batch = input.shape[0]
-            ref_batch, channel, height, width = ref_input.shape
-            ref_input = ref_input.view(
-                in_batch, ref_batch // in_batch, channel, height, width
+            _, channel, height, width = ref_input.shape
+            ref_input = ref_input.view(-1, ref_batch, channel, height, width)
+            ref_input = ref_input.mean(1, keepdim=True)
+            ref_input = ref_input.repeat(
+                1, input.shape[0] // ref_input.shape[0], 1, 1, 1
             )
-            ref_input = ref_input.mean(1)
+            ref_input = ref_input.view(-1, channel, height, width)
 
         out = torch.cat((out_input, ref_input), 1)
         out = torch.flatten(out, 1)
