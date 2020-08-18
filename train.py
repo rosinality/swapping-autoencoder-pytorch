@@ -181,7 +181,7 @@ def train(
 
         fake_patch = patchify_image(fake_img2, args.n_crop)
         real_patch = patchify_image(real_img2, args.n_crop)
-        ref_patch = patchify_image(real_img2, args.ref_crop)
+        ref_patch = patchify_image(real_img2, args.ref_crop * args.n_crop)
         fake_patch_pred, ref_input = cooccur(
             fake_patch, ref_patch, ref_batch=args.ref_crop
         )
@@ -239,7 +239,7 @@ def train(
         g_loss = g_nonsaturating_loss(fake_pred)
 
         fake_patch = patchify_image(fake_img2, args.n_crop)
-        ref_patch = patchify_image(real_img2, args.ref_crop)
+        ref_patch = patchify_image(real_img2, args.ref_crop * args.n_crop)
         fake_patch_pred, _ = cooccur(fake_patch, ref_patch, ref_batch=args.ref_crop)
         g_cooccur_loss = g_nonsaturating_loss(fake_patch_pred)
 

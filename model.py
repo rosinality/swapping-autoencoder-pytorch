@@ -392,11 +392,7 @@ class CooccurDiscriminator(nn.Module):
             ref_input = self.encoder(reference)
             _, channel, height, width = ref_input.shape
             ref_input = ref_input.view(-1, ref_batch, channel, height, width)
-            ref_input = ref_input.mean(1, keepdim=True)
-            ref_input = ref_input.repeat(
-                1, input.shape[0] // ref_input.shape[0], 1, 1, 1
-            )
-            ref_input = ref_input.view(-1, channel, height, width)
+            ref_input = ref_input.mean(1)
 
         out = torch.cat((out_input, ref_input), 1)
         out = torch.flatten(out, 1)
