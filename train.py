@@ -226,6 +226,8 @@ def train(
         requires_grad(generator, True)
         requires_grad(discriminator, False)
         requires_grad(cooccur, False)
+        
+        real_img.requires_grad = False
 
         structure1, texture1 = encoder(real_img1)
         _, texture2 = encoder(real_img2)
